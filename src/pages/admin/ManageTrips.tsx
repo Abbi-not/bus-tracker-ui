@@ -1,10 +1,9 @@
 import { useState } from "react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
-import { Plus } from "lucide-react";
+import { Plus, X } from "lucide-react";
 import { toast } from "sonner";
 
 const initialTrips = [
@@ -18,57 +17,61 @@ const ManageTrips = () => {
   const [showForm, setShowForm] = useState(false);
 
   return (
-    <div className="max-w-5xl mx-auto px-4 py-8">
-      <div className="flex justify-between items-center mb-6">
-        <h1 className="text-2xl font-bold text-foreground">Manage Trips</h1>
-        <Button className="gap-2" onClick={() => setShowForm(!showForm)}>
-          <Plus className="h-4 w-4" /> Add Trip
+    <div className="max-w-5xl mx-auto px-6 py-12">
+      <div className="flex justify-between items-center mb-8">
+        <div>
+          <p className="text-xs text-muted-foreground uppercase tracking-widest mb-1">Admin</p>
+          <h1 className="text-3xl font-serif font-bold text-foreground">Manage Trips</h1>
+        </div>
+        <Button className="rounded-full gap-2 px-6" onClick={() => setShowForm(!showForm)}>
+          {showForm ? <X className="h-4 w-4" /> : <Plus className="h-4 w-4" />}
+          {showForm ? "Cancel" : "Add Trip"}
         </Button>
       </div>
 
       {showForm && (
-        <Card className="mb-6">
-          <CardHeader><CardTitle>Add New Trip</CardTitle></CardHeader>
-          <CardContent>
-            <form className="grid grid-cols-1 sm:grid-cols-2 gap-4" onSubmit={(e) => { e.preventDefault(); toast.success("Trip added!"); setShowForm(false); }}>
-              <Input placeholder="Route (e.g. AA → Hawassa)" required />
-              <Input placeholder="Bus Name" required />
-              <Input type="date" required />
-              <Input placeholder="Time" required />
-              <div className="sm:col-span-2"><Button type="submit">Save Trip</Button></div>
-            </form>
-          </CardContent>
-        </Card>
+        <div className="bg-card border border-border rounded-2xl p-6 mb-8">
+          <h2 className="text-lg font-serif font-semibold text-foreground mb-4">New Trip</h2>
+          <form className="grid grid-cols-1 sm:grid-cols-2 gap-4" onSubmit={(e) => { e.preventDefault(); toast.success("Trip added!"); setShowForm(false); }}>
+            <Input placeholder="Route (e.g. AA → Hawassa)" className="rounded-xl" required />
+            <Input placeholder="Bus Name" className="rounded-xl" required />
+            <Input type="date" className="rounded-xl" required />
+            <Input placeholder="Time" className="rounded-xl" required />
+            <div className="sm:col-span-2">
+              <Button type="submit" className="rounded-full px-8">Save</Button>
+            </div>
+          </form>
+        </div>
       )}
 
-      <Card>
-        <CardContent className="p-0">
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Route</TableHead>
-                <TableHead>Bus</TableHead>
-                <TableHead>Date</TableHead>
-                <TableHead>Time</TableHead>
-                <TableHead>Status</TableHead>
+      <div className="bg-card border border-border rounded-2xl overflow-hidden">
+        <Table>
+          <TableHeader>
+            <TableRow className="border-border">
+              <TableHead className="text-xs uppercase tracking-wider text-muted-foreground">Route</TableHead>
+              <TableHead className="text-xs uppercase tracking-wider text-muted-foreground">Bus</TableHead>
+              <TableHead className="text-xs uppercase tracking-wider text-muted-foreground">Date</TableHead>
+              <TableHead className="text-xs uppercase tracking-wider text-muted-foreground">Time</TableHead>
+              <TableHead className="text-xs uppercase tracking-wider text-muted-foreground">Status</TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {trips.map((t) => (
+              <TableRow key={t.id} className="border-border">
+                <TableCell className="font-medium text-foreground">{t.route}</TableCell>
+                <TableCell className="text-muted-foreground">{t.bus}</TableCell>
+                <TableCell className="text-muted-foreground">{t.date}</TableCell>
+                <TableCell className="text-muted-foreground">{t.time}</TableCell>
+                <TableCell>
+                  <Badge variant={t.status === "Active" ? "default" : "secondary"} className="rounded-full px-3">
+                    {t.status}
+                  </Badge>
+                </TableCell>
               </TableRow>
-            </TableHeader>
-            <TableBody>
-              {trips.map((t) => (
-                <TableRow key={t.id}>
-                  <TableCell className="font-medium">{t.route}</TableCell>
-                  <TableCell>{t.bus}</TableCell>
-                  <TableCell>{t.date}</TableCell>
-                  <TableCell>{t.time}</TableCell>
-                  <TableCell>
-                    <Badge variant={t.status === "Active" ? "default" : "secondary"}>{t.status}</Badge>
-                  </TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-        </CardContent>
-      </Card>
+            ))}
+          </TableBody>
+        </Table>
+      </div>
     </div>
   );
 };

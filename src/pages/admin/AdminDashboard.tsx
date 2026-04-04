@@ -1,4 +1,3 @@
-import { Card, CardContent } from "@/components/ui/card";
 import { Bus, Route, MapPin, Users } from "lucide-react";
 
 const stats = [
@@ -9,26 +8,27 @@ const stats = [
 ];
 
 const AdminDashboard = () => (
-  <div className="max-w-5xl mx-auto px-4 py-8">
-    <h1 className="text-2xl font-bold text-foreground mb-6">Admin Dashboard</h1>
-    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+  <div className="max-w-5xl mx-auto px-6 py-12">
+    <div className="mb-8">
+      <p className="text-xs text-muted-foreground uppercase tracking-widest mb-1">Admin</p>
+      <h1 className="text-3xl font-serif font-bold text-foreground">Dashboard</h1>
+    </div>
+
+    <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-10">
       {stats.map((s) => (
-        <Card key={s.label}>
-          <CardContent className="p-5">
-            <div className="flex justify-between items-start">
-              <p className="text-sm text-muted-foreground">{s.label}</p>
-              <s.icon className="h-5 w-5 text-primary" />
-            </div>
-            <p className="text-3xl font-bold text-foreground mt-2">{s.value}</p>
-          </CardContent>
-        </Card>
+        <div key={s.label} className="bg-card border border-border rounded-2xl p-5 text-center">
+          <div className="w-10 h-10 mx-auto mb-3 rounded-xl bg-background border border-border flex items-center justify-center">
+            <s.icon className="h-4 w-4 text-foreground" />
+          </div>
+          <p className="text-2xl font-bold text-foreground">{s.value}</p>
+          <p className="text-xs text-muted-foreground mt-0.5">{s.label}</p>
+        </div>
       ))}
     </div>
-    <Card>
-      <CardContent className="p-6">
-        <p className="text-muted-foreground">Manage buses, routes, and trips from the navigation above.</p>
-      </CardContent>
-    </Card>
+
+    <div className="bg-card border border-border rounded-2xl p-8 text-center">
+      <p className="text-muted-foreground">Manage buses, routes, and trips from the navigation above.</p>
+    </div>
   </div>
 );
 

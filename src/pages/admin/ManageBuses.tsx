@@ -1,9 +1,8 @@
 import { useState } from "react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Plus } from "lucide-react";
+import { Plus, X } from "lucide-react";
 import { toast } from "sonner";
 
 const initialBuses = [
@@ -17,54 +16,58 @@ const ManageBuses = () => {
   const [showForm, setShowForm] = useState(false);
 
   return (
-    <div className="max-w-5xl mx-auto px-4 py-8">
-      <div className="flex justify-between items-center mb-6">
-        <h1 className="text-2xl font-bold text-foreground">Manage Buses</h1>
-        <Button className="gap-2" onClick={() => setShowForm(!showForm)}>
-          <Plus className="h-4 w-4" /> Add Bus
+    <div className="max-w-5xl mx-auto px-6 py-12">
+      <div className="flex justify-between items-center mb-8">
+        <div>
+          <p className="text-xs text-muted-foreground uppercase tracking-widest mb-1">Admin</p>
+          <h1 className="text-3xl font-serif font-bold text-foreground">Manage Buses</h1>
+        </div>
+        <Button className="rounded-full gap-2 px-6" onClick={() => setShowForm(!showForm)}>
+          {showForm ? <X className="h-4 w-4" /> : <Plus className="h-4 w-4" />}
+          {showForm ? "Cancel" : "Add Bus"}
         </Button>
       </div>
 
       {showForm && (
-        <Card className="mb-6">
-          <CardHeader><CardTitle>Add New Bus</CardTitle></CardHeader>
-          <CardContent>
-            <form className="grid grid-cols-1 sm:grid-cols-2 gap-4" onSubmit={(e) => { e.preventDefault(); toast.success("Bus added!"); setShowForm(false); }}>
-              <Input placeholder="Bus Name" required />
-              <Input placeholder="Plate Number" required />
-              <Input placeholder="Capacity" type="number" required />
-              <div className="sm:col-span-2">
-                <Button type="submit">Save Bus</Button>
-              </div>
-            </form>
-          </CardContent>
-        </Card>
+        <div className="bg-card border border-border rounded-2xl p-6 mb-8">
+          <h2 className="text-lg font-serif font-semibold text-foreground mb-4">New Bus</h2>
+          <form className="grid grid-cols-1 sm:grid-cols-3 gap-4" onSubmit={(e) => { e.preventDefault(); toast.success("Bus added!"); setShowForm(false); }}>
+            <Input placeholder="Bus Name" className="rounded-xl" required />
+            <Input placeholder="Plate Number" className="rounded-xl" required />
+            <Input placeholder="Capacity" type="number" className="rounded-xl" required />
+            <div className="sm:col-span-3">
+              <Button type="submit" className="rounded-full px-8">Save</Button>
+            </div>
+          </form>
+        </div>
       )}
 
-      <Card>
-        <CardContent className="p-0">
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Name</TableHead>
-                <TableHead>Plate</TableHead>
-                <TableHead>Capacity</TableHead>
-                <TableHead>Status</TableHead>
+      <div className="bg-card border border-border rounded-2xl overflow-hidden">
+        <Table>
+          <TableHeader>
+            <TableRow className="border-border">
+              <TableHead className="text-xs uppercase tracking-wider text-muted-foreground">Name</TableHead>
+              <TableHead className="text-xs uppercase tracking-wider text-muted-foreground">Plate</TableHead>
+              <TableHead className="text-xs uppercase tracking-wider text-muted-foreground">Capacity</TableHead>
+              <TableHead className="text-xs uppercase tracking-wider text-muted-foreground">Status</TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {buses.map((b) => (
+              <TableRow key={b.id} className="border-border">
+                <TableCell className="font-medium text-foreground">{b.name}</TableCell>
+                <TableCell className="text-muted-foreground">{b.plate}</TableCell>
+                <TableCell className="text-muted-foreground">{b.capacity}</TableCell>
+                <TableCell>
+                  <span className={`text-xs px-3 py-1 rounded-full ${b.status === "Active" ? "bg-secondary text-foreground" : "bg-muted text-muted-foreground"}`}>
+                    {b.status}
+                  </span>
+                </TableCell>
               </TableRow>
-            </TableHeader>
-            <TableBody>
-              {buses.map((b) => (
-                <TableRow key={b.id}>
-                  <TableCell className="font-medium">{b.name}</TableCell>
-                  <TableCell>{b.plate}</TableCell>
-                  <TableCell>{b.capacity}</TableCell>
-                  <TableCell>{b.status}</TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-        </CardContent>
-      </Card>
+            ))}
+          </TableBody>
+        </Table>
+      </div>
     </div>
   );
 };

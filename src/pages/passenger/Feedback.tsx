@@ -1,8 +1,7 @@
 import { useState } from "react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Textarea } from "@/components/ui/textarea";
 import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
 import { toast } from "sonner";
 
 const Feedback = () => {
@@ -17,24 +16,26 @@ const Feedback = () => {
   };
 
   return (
-    <div className="max-w-xl mx-auto px-4 py-8">
-      <h1 className="text-2xl font-bold text-foreground mb-6">Feedback</h1>
-      <Card>
-        <CardHeader><CardTitle>Share Your Experience</CardTitle></CardHeader>
-        <CardContent>
-          <form onSubmit={handleSubmit} className="space-y-4">
-            <div>
-              <label className="text-sm font-medium text-foreground">Subject</label>
-              <Input value={subject} onChange={(e) => setSubject(e.target.value)} placeholder="Topic" required />
-            </div>
-            <div>
-              <label className="text-sm font-medium text-foreground">Message</label>
-              <Textarea value={message} onChange={(e) => setMessage(e.target.value)} placeholder="Your feedback..." rows={5} required />
-            </div>
-            <Button type="submit" className="w-full">Submit Feedback</Button>
-          </form>
-        </CardContent>
-      </Card>
+    <div className="max-w-lg mx-auto px-6 py-12">
+      <div className="mb-8">
+        <p className="text-xs text-muted-foreground uppercase tracking-widest mb-1">Contact</p>
+        <h1 className="text-3xl font-serif font-bold text-foreground">Share your feedback</h1>
+        <p className="text-sm text-muted-foreground mt-2">We'd love to hear about your experience.</p>
+      </div>
+
+      <div className="bg-card border border-border rounded-2xl p-6">
+        <form onSubmit={handleSubmit} className="space-y-4">
+          <div>
+            <label className="text-xs font-medium text-muted-foreground uppercase tracking-wider mb-1.5 block">Subject</label>
+            <Input value={subject} onChange={(e) => setSubject(e.target.value)} placeholder="Topic" className="rounded-xl" required />
+          </div>
+          <div>
+            <label className="text-xs font-medium text-muted-foreground uppercase tracking-wider mb-1.5 block">Message</label>
+            <Textarea value={message} onChange={(e) => setMessage(e.target.value)} placeholder="Your feedback..." rows={5} className="rounded-xl" required />
+          </div>
+          <Button type="submit" className="w-full rounded-full">Submit Feedback</Button>
+        </form>
+      </div>
     </div>
   );
 };
