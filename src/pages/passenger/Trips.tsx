@@ -1,9 +1,8 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Search } from "lucide-react";
+import { Search, ArrowRight } from "lucide-react";
 
 const mockTrips = [
   { id: "1", from: "Addis Ababa", to: "Hawassa", date: "2025-05-14", time: "06:00AM", price: 450, bus: "Zemen Bus", seats: 15 },
@@ -14,34 +13,37 @@ const mockTrips = [
 const Trips = () => {
   const navigate = useNavigate();
   const [search, setSearch] = useState("");
-
   const filtered = mockTrips.filter(
     (t) => t.from.toLowerCase().includes(search.toLowerCase()) || t.to.toLowerCase().includes(search.toLowerCase())
   );
 
   return (
-    <div className="max-w-4xl mx-auto px-4 py-8">
-      <h1 className="text-2xl font-bold text-foreground mb-4">Available Trips</h1>
-      <div className="relative mb-6">
-        <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-        <Input placeholder="Search by city..." className="pl-9" value={search} onChange={(e) => setSearch(e.target.value)} />
+    <div className="max-w-4xl mx-auto px-6 py-12">
+      <div className="mb-8">
+        <p className="text-xs text-muted-foreground uppercase tracking-widest mb-1">Browse</p>
+        <h1 className="text-3xl font-serif font-bold text-foreground">Available Trips</h1>
+      </div>
+
+      <div className="relative mb-8">
+        <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+        <Input placeholder="Search by city..." className="pl-10 rounded-full h-12" value={search} onChange={(e) => setSearch(e.target.value)} />
       </div>
 
       <div className="space-y-4">
         {filtered.map((trip) => (
-          <Card key={trip.id}>
-            <CardContent className="p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-              <div className="flex-1">
-                <p className="font-semibold text-foreground text-lg">{trip.from} → {trip.to}</p>
-                <p className="text-sm text-muted-foreground">{trip.bus} • {trip.date} • {trip.time}</p>
-                <p className="text-sm text-muted-foreground">{trip.seats} seats available</p>
-              </div>
-              <div className="flex items-center gap-3">
-                <span className="text-lg font-bold text-primary">{trip.price} ETB</span>
-                <Button size="sm" onClick={() => navigate(`/booking/${trip.id}`)}>Book Now</Button>
-              </div>
-            </CardContent>
-          </Card>
+          <div key={trip.id} className="bg-card border border-border rounded-2xl p-6 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+            <div className="flex-1">
+              <p className="font-serif text-xl font-semibold text-foreground">{trip.from} → {trip.to}</p>
+              <p className="text-sm text-muted-foreground mt-1">{trip.bus} · {trip.date} · {trip.time}</p>
+              <p className="text-xs text-muted-foreground mt-0.5">{trip.seats} seats available</p>
+            </div>
+            <div className="flex items-center gap-4">
+              <span className="text-xl font-bold text-foreground">{trip.price} <span className="text-xs font-normal text-muted-foreground">ETB</span></span>
+              <Button className="rounded-full gap-2 px-6" size="sm" onClick={() => navigate(`/booking/${trip.id}`)}>
+                Book <ArrowRight className="h-3 w-3" />
+              </Button>
+            </div>
+          </div>
         ))}
       </div>
     </div>

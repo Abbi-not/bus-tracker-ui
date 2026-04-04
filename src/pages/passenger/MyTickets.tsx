@@ -1,4 +1,3 @@
-import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 
 const tickets = [
@@ -8,25 +7,26 @@ const tickets = [
 ];
 
 const MyTickets = () => (
-  <div className="max-w-4xl mx-auto px-4 py-8">
-    <h1 className="text-2xl font-bold text-foreground mb-6">My Tickets</h1>
+  <div className="max-w-4xl mx-auto px-6 py-12">
+    <div className="mb-8">
+      <p className="text-xs text-muted-foreground uppercase tracking-widest mb-1">Tickets</p>
+      <h1 className="text-3xl font-serif font-bold text-foreground">My Tickets</h1>
+    </div>
     <div className="space-y-4">
       {tickets.map((t) => (
-        <Card key={t.id}>
-          <CardContent className="p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-            <div>
-              <p className="font-semibold text-foreground">{t.from} → {t.to}</p>
-              <p className="text-sm text-muted-foreground">{t.bus} • Seat {t.seat}</p>
-              <p className="text-xs text-muted-foreground">📅 {t.date}</p>
-            </div>
-            <div className="flex items-center gap-2">
-              <Badge variant={t.status === "confirmed" ? "default" : "secondary"} className="capitalize">
-                {t.status}
-              </Badge>
-              <span className="text-xs text-muted-foreground">#{t.id}</span>
-            </div>
-          </CardContent>
-        </Card>
+        <div key={t.id} className="bg-card border border-border rounded-2xl p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+          <div>
+            <p className="font-semibold text-foreground">{t.from} → {t.to}</p>
+            <p className="text-sm text-muted-foreground mt-0.5">{t.bus} · Seat {t.seat}</p>
+            <p className="text-xs text-muted-foreground mt-0.5">{t.date}</p>
+          </div>
+          <div className="flex items-center gap-3">
+            <Badge variant={t.status === "confirmed" ? "default" : "secondary"} className="capitalize rounded-full px-3">
+              {t.status}
+            </Badge>
+            <span className="text-xs text-muted-foreground">#{t.id}</span>
+          </div>
+        </div>
       ))}
     </div>
   </div>

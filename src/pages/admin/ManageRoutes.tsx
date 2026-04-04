@@ -1,9 +1,8 @@
 import { useState } from "react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Plus } from "lucide-react";
+import { Plus, X } from "lucide-react";
 import { toast } from "sonner";
 
 const initialRoutes = [
@@ -17,53 +16,55 @@ const ManageRoutes = () => {
   const [showForm, setShowForm] = useState(false);
 
   return (
-    <div className="max-w-5xl mx-auto px-4 py-8">
-      <div className="flex justify-between items-center mb-6">
-        <h1 className="text-2xl font-bold text-foreground">Manage Routes</h1>
-        <Button className="gap-2" onClick={() => setShowForm(!showForm)}>
-          <Plus className="h-4 w-4" /> Add Route
+    <div className="max-w-5xl mx-auto px-6 py-12">
+      <div className="flex justify-between items-center mb-8">
+        <div>
+          <p className="text-xs text-muted-foreground uppercase tracking-widest mb-1">Admin</p>
+          <h1 className="text-3xl font-serif font-bold text-foreground">Manage Routes</h1>
+        </div>
+        <Button className="rounded-full gap-2 px-6" onClick={() => setShowForm(!showForm)}>
+          {showForm ? <X className="h-4 w-4" /> : <Plus className="h-4 w-4" />}
+          {showForm ? "Cancel" : "Add Route"}
         </Button>
       </div>
 
       {showForm && (
-        <Card className="mb-6">
-          <CardHeader><CardTitle>Add New Route</CardTitle></CardHeader>
-          <CardContent>
-            <form className="grid grid-cols-1 sm:grid-cols-2 gap-4" onSubmit={(e) => { e.preventDefault(); toast.success("Route added!"); setShowForm(false); }}>
-              <Input placeholder="From" required />
-              <Input placeholder="To" required />
-              <Input placeholder="Distance" required />
-              <Input placeholder="Duration" required />
-              <div className="sm:col-span-2"><Button type="submit">Save Route</Button></div>
-            </form>
-          </CardContent>
-        </Card>
+        <div className="bg-card border border-border rounded-2xl p-6 mb-8">
+          <h2 className="text-lg font-serif font-semibold text-foreground mb-4">New Route</h2>
+          <form className="grid grid-cols-1 sm:grid-cols-2 gap-4" onSubmit={(e) => { e.preventDefault(); toast.success("Route added!"); setShowForm(false); }}>
+            <Input placeholder="From" className="rounded-xl" required />
+            <Input placeholder="To" className="rounded-xl" required />
+            <Input placeholder="Distance" className="rounded-xl" required />
+            <Input placeholder="Duration" className="rounded-xl" required />
+            <div className="sm:col-span-2">
+              <Button type="submit" className="rounded-full px-8">Save</Button>
+            </div>
+          </form>
+        </div>
       )}
 
-      <Card>
-        <CardContent className="p-0">
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>From</TableHead>
-                <TableHead>To</TableHead>
-                <TableHead>Distance</TableHead>
-                <TableHead>Duration</TableHead>
+      <div className="bg-card border border-border rounded-2xl overflow-hidden">
+        <Table>
+          <TableHeader>
+            <TableRow className="border-border">
+              <TableHead className="text-xs uppercase tracking-wider text-muted-foreground">From</TableHead>
+              <TableHead className="text-xs uppercase tracking-wider text-muted-foreground">To</TableHead>
+              <TableHead className="text-xs uppercase tracking-wider text-muted-foreground">Distance</TableHead>
+              <TableHead className="text-xs uppercase tracking-wider text-muted-foreground">Duration</TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {routes.map((r) => (
+              <TableRow key={r.id} className="border-border">
+                <TableCell className="font-medium text-foreground">{r.from}</TableCell>
+                <TableCell className="text-muted-foreground">{r.to}</TableCell>
+                <TableCell className="text-muted-foreground">{r.distance}</TableCell>
+                <TableCell className="text-muted-foreground">{r.duration}</TableCell>
               </TableRow>
-            </TableHeader>
-            <TableBody>
-              {routes.map((r) => (
-                <TableRow key={r.id}>
-                  <TableCell>{r.from}</TableCell>
-                  <TableCell>{r.to}</TableCell>
-                  <TableCell>{r.distance}</TableCell>
-                  <TableCell>{r.duration}</TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-        </CardContent>
-      </Card>
+            ))}
+          </TableBody>
+        </Table>
+      </div>
     </div>
   );
 };
