@@ -1,14 +1,13 @@
 import { useState } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
 import { CalendarCheck, MapPin, Clock, Bell, Users } from "lucide-react";
 
 const stats = [
-  { label: "Scheduled", value: 3, icon: CalendarCheck },
-  { label: "Active", value: 3, icon: MapPin },
-  { label: "Completed", value: 1, icon: Clock },
-  { label: "Alerts", value: 2, icon: Bell },
+  { label: "Scheduled", value: 3, icon: CalendarCheck, color: "bg-primary/10 text-primary" },
+  { label: "Active", value: 3, icon: MapPin, color: "bg-success/10 text-success" },
+  { label: "Completed", value: 1, icon: Clock, color: "bg-accent text-accent-foreground" },
+  { label: "Alerts", value: 2, icon: Bell, color: "bg-warning/10 text-warning" },
 ];
 
 const mockTrip = {
@@ -21,17 +20,19 @@ const DriverDashboard = () => {
   const [tab, setTab] = useState<"active" | "all" | "notifications">("active");
 
   return (
-    <div className="max-w-5xl mx-auto px-6 py-12">
-      <div className="mb-8">
-        <p className="text-xs text-muted-foreground uppercase tracking-widest mb-1">Driver</p>
-        <h1 className="text-3xl font-serif font-bold text-foreground">Welcome back, {user?.name}</h1>
+    <div className="max-w-5xl mx-auto px-6 py-12 relative">
+      <div className="orb orb-primary w-[350px] h-[350px] -top-20 -right-40 animate-pulse-soft" />
+
+      <div className="mb-10 animate-fade-up">
+        <span className="inline-flex text-[11px] text-muted-foreground uppercase tracking-widest glass-subtle rounded-full px-4 py-1.5 mb-3">Driver</span>
+        <h1 className="text-3xl md:text-4xl font-serif font-bold text-foreground">Welcome back, {user?.name}</h1>
       </div>
 
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-10">
-        {stats.map((s) => (
-          <div key={s.label} className="bg-card border border-border rounded-2xl p-5 text-center">
-            <div className="w-10 h-10 mx-auto mb-3 rounded-xl bg-background border border-border flex items-center justify-center">
-              <s.icon className="h-4 w-4 text-foreground" />
+        {stats.map((s, i) => (
+          <div key={s.label} className={`glass-card rounded-2xl p-5 text-center hover-lift animate-fade-up stagger-${i + 1}`}>
+            <div className={`w-11 h-11 mx-auto mb-3 rounded-xl ${s.color} flex items-center justify-center`}>
+              <s.icon className="h-5 w-5" />
             </div>
             <p className="text-2xl font-bold text-foreground">{s.value}</p>
             <p className="text-xs text-muted-foreground mt-0.5">{s.label}</p>
@@ -44,8 +45,8 @@ const DriverDashboard = () => {
           <button
             key={t}
             onClick={() => setTab(t)}
-            className={`text-xs uppercase tracking-wider px-4 py-2 rounded-full border transition-colors ${
-              tab === t ? "bg-primary text-primary-foreground border-primary" : "bg-card text-muted-foreground border-border hover:text-foreground"
+            className={`text-xs uppercase tracking-wider px-5 py-2 rounded-full transition-all duration-300 ${
+              tab === t ? "bg-primary text-primary-foreground shadow-elevated" : "glass-subtle text-muted-foreground hover:text-foreground"
             }`}
           >
             {t === "active" ? "Active" : t === "all" ? "All Trips" : "Alerts"}
@@ -54,40 +55,46 @@ const DriverDashboard = () => {
       </div>
 
       {tab === "active" && (
-        <div className="bg-card border border-border rounded-2xl p-6">
+        <div className="glass-card rounded-2xl p-6 animate-scale-in">
           <div className="mb-1">
             <h2 className="text-xl font-serif font-semibold text-foreground">Current Trip</h2>
-            <p className="text-xs text-muted-foreground">Trip ID: {mockTrip.id}</p>
+            <p className="text-xs text-muted-foreground font-mono">Trip ID: {mockTrip.id}</p>
           </div>
           <div className="mt-4 mb-6">
-            <p className="font-semibold text-foreground">{mockTrip.from} → {mockTrip.to}</p>
+            <p className="font-semibold text-foreground text-lg">{mockTrip.from} → {mockTrip.to}</p>
             <p className="text-sm text-muted-foreground">{mockTrip.bus} · {mockTrip.plate}</p>
           </div>
           <div className="grid grid-cols-2 md:grid-cols-3 gap-3 text-sm mb-6">
-            <div className="flex items-center gap-2 text-muted-foreground"><CalendarCheck className="h-4 w-4" /> {mockTrip.date}</div>
-            <div className="flex items-center gap-2 text-muted-foreground"><Clock className="h-4 w-4" /> {mockTrip.time}</div>
-            <div className="flex items-center gap-2 text-muted-foreground"><Users className="h-4 w-4" /> {mockTrip.passengers} passengers</div>
+            {[
+              { icon: CalendarCheck, val: mockTrip.date },
+              { icon: Clock, val: mockTrip.time },
+              { icon: Users, val: `${mockTrip.passengers} passengers` },
+            ].map((item, i) => (
+              <div key={i} className="flex items-center gap-2 text-muted-foreground glass-subtle rounded-xl px-3 py-2">
+                <item.icon className="h-4 w-4 text-primary" /> {item.val}
+              </div>
+            ))}
           </div>
           <div className="flex flex-wrap gap-3">
-            <Button className="rounded-full px-6">Complete Trip</Button>
-            <Button variant="outline" className="rounded-full px-6">Update Location</Button>
+            <Button className="rounded-full px-6 shadow-elevated hover-lift">Complete Trip</Button>
+            <Button variant="outline" className="rounded-full px-6 border-border/40 hover-lift">Update Location</Button>
           </div>
         </div>
       )}
 
       {tab === "all" && (
-        <div className="bg-card border border-border rounded-2xl p-6 text-muted-foreground text-sm text-center py-12">
+        <div className="glass-card rounded-2xl p-8 text-muted-foreground text-sm text-center animate-scale-in">
           All trips list will appear here.
         </div>
       )}
 
       {tab === "notifications" && (
-        <div className="space-y-3">
+        <div className="space-y-3 animate-scale-in">
           {[
             { msg: "New trip assigned: AA → Hawassa", time: "2 hours ago" },
             { msg: "Schedule updated for May 20", time: "1 day ago" },
           ].map((n, i) => (
-            <div key={i} className="bg-card border border-border rounded-2xl p-5">
+            <div key={i} className="glass-card rounded-2xl p-5 hover-lift">
               <p className="text-sm font-medium text-foreground">{n.msg}</p>
               <p className="text-xs text-muted-foreground mt-1">{n.time}</p>
             </div>
