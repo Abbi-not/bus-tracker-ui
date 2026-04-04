@@ -1,13 +1,21 @@
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useNavigate, useLocation } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
-import { Menu, X } from "lucide-react";
+import { Menu, X, Bus } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 
 const Navbar = () => {
   const { user, logout, isAuthenticated } = useAuth();
   const navigate = useNavigate();
+  const location = useLocation();
   const [mobileOpen, setMobileOpen] = useState(false);
+  const [scrolled, setScrolled] = useState(false);
+
+  useEffect(() => {
+    const onScroll = () => setScrolled(window.scrollY > 10);
+    window.addEventListener("scroll", onScroll);
+    return () => window.removeEventListener("scroll", onScroll);
+  }, []);
 
   const getLinks = () => {
     if (!user) return [{ to: "/", label: "Home" }, { to: "/trips", label: "Trips" }];
@@ -36,34 +44,46 @@ const Navbar = () => {
     }
   };
 
+  const isActive = (path: string) => location.pathname === path;
+
   return (
-    <nav className="border-b border-border bg-card/80 backdrop-blur-md sticky top-0 z-50">
+    <nav className={`sticky top-0 z-50 transition-all duration-500 ${scrolled ? "glass shadow-elevated" : "bg-transparent"}`}>
       <div className="max-w-6xl mx-auto px-6">
         <div className="flex items-center justify-between h-16">
-          <Link to="/" className="text-lg font-serif font-bold text-foreground tracking-tight">
-            BusTrack
+          <Link to="/" className="flex items-center gap-2 group">
+            <div className="w-8 h-8 rounded-xl bg-primary flex items-center justify-center group-hover:shadow-elevated transition-shadow duration-300">
+              <Bus className="h-4 w-4 text-primary-foreground" />
+            </div>
+            <span className="text-lg font-serif font-bold text-foreground tracking-tight">BusTrack</span>
           </Link>
 
-          <div className="hidden md:flex items-center gap-8">
+          {/* Desktop nav - pill container */}
+          <div className="hidden md:flex items-center gap-1 glass-subtle rounded-full px-1.5 py-1">
             {getLinks().map((link) => (
               <Link
                 key={link.to}
                 to={link.to}
-                className="text-sm text-muted-foreground hover:text-foreground transition-colors"
+                className={`text-sm px-4 py-1.5 rounded-full transition-all duration-300 ${
+                  isActive(link.to)
+                    ? "bg-primary text-primary-foreground shadow-sm"
+                    : "text-muted-foreground hover:text-foreground hover:bg-secondary/60"
+                }`}
               >
                 {link.label}
               </Link>
             ))}
           </div>
 
-          <div className="hidden md:flex items-center gap-3">
+          <div className="hidden md:flex items-center gap-2">
             {isAuthenticated ? (
               <>
-                <span className="text-sm text-muted-foreground">{user?.name}</span>
+                <div className="glass-subtle rounded-full px-4 py-1.5 mr-1">
+                  <span className="text-sm text-muted-foreground">{user?.name}</span>
+                </div>
                 <Button
                   variant="outline"
                   size="sm"
-                  className="rounded-full text-xs px-4"
+                  className="rounded-full text-xs px-5 hover-lift border-border/50"
                   onClick={() => { logout(); navigate("/"); }}
                 >
                   Logout
@@ -74,47 +94,49 @@ const Navbar = () => {
                 <Button
                   variant="ghost"
                   size="sm"
-                  className="text-sm"
+                  className="text-sm rounded-full px-5 hover:bg-secondary/60"
                   onClick={() => navigate("/login")}
                 >
                   Login
                 </Button>
                 <Button
                   size="sm"
-                  className="rounded-full text-xs px-5"
+                  className="rounded-full text-xs px-6 shadow-elevated hover-lift"
                   onClick={() => navigate("/register")}
                 >
-                  Sign Up
+                  Get Started
                 </Button>
               </>
             )}
           </div>
 
-          <button className="md:hidden" onClick={() => setMobileOpen(!mobileOpen)}>
+          <button className="md:hidden p-2 rounded-xl hover:bg-secondary/60 transition-colors" onClick={() => setMobileOpen(!mobileOpen)}>
             {mobileOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
           </button>
         </div>
       </div>
 
       {mobileOpen && (
-        <div className="md:hidden border-t border-border bg-card px-6 pb-4 space-y-1 animate-fade-in">
+        <div className="md:hidden glass mx-4 mb-2 rounded-2xl px-4 pb-4 pt-2 animate-scale-in shadow-elevated-lg">
           {getLinks().map((link) => (
             <Link
               key={link.to}
               to={link.to}
-              className="block py-2.5 text-sm text-muted-foreground hover:text-foreground"
+              className={`block py-2.5 px-3 text-sm rounded-xl transition-colors ${
+                isActive(link.to) ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:text-foreground hover:bg-secondary/60"
+              }`}
               onClick={() => setMobileOpen(false)}
             >
               {link.label}
             </Link>
           ))}
-          <div className="pt-2 border-t border-border">
+          <div className="pt-2 mt-2 border-t border-border/30">
             {isAuthenticated ? (
-              <Button variant="ghost" size="sm" className="w-full justify-start text-sm" onClick={() => { logout(); navigate("/"); setMobileOpen(false); }}>
+              <Button variant="ghost" size="sm" className="w-full justify-start text-sm rounded-xl" onClick={() => { logout(); navigate("/"); setMobileOpen(false); }}>
                 Logout
               </Button>
             ) : (
-              <Button size="sm" className="w-full rounded-full" onClick={() => { navigate("/login"); setMobileOpen(false); }}>
+              <Button size="sm" className="w-full rounded-full shadow-elevated" onClick={() => { navigate("/login"); setMobileOpen(false); }}>
                 Login
               </Button>
             )}

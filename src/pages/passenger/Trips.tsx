@@ -18,28 +18,33 @@ const Trips = () => {
   );
 
   return (
-    <div className="max-w-4xl mx-auto px-6 py-12">
-      <div className="mb-8">
-        <p className="text-xs text-muted-foreground uppercase tracking-widest mb-1">Browse</p>
-        <h1 className="text-3xl font-serif font-bold text-foreground">Available Trips</h1>
+    <div className="max-w-4xl mx-auto px-6 py-12 relative">
+      <div className="orb orb-accent w-[350px] h-[350px] -top-20 -left-40 animate-pulse-soft" />
+
+      <div className="mb-8 animate-fade-up">
+        <span className="inline-flex text-[11px] text-muted-foreground uppercase tracking-widest glass-subtle rounded-full px-4 py-1.5 mb-3">Browse</span>
+        <h1 className="text-3xl md:text-4xl font-serif font-bold text-foreground">Available Trips</h1>
       </div>
 
-      <div className="relative mb-8">
+      <div className="relative mb-8 animate-fade-up stagger-1">
         <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-        <Input placeholder="Search by city..." className="pl-10 rounded-full h-12" value={search} onChange={(e) => setSearch(e.target.value)} />
+        <Input placeholder="Search by city..." className="pl-10 rounded-full h-12 glass border-border/40" value={search} onChange={(e) => setSearch(e.target.value)} />
       </div>
 
       <div className="space-y-4">
-        {filtered.map((trip) => (
-          <div key={trip.id} className="bg-card border border-border rounded-2xl p-6 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        {filtered.map((trip, i) => (
+          <div key={trip.id} className={`glass-card rounded-2xl p-6 flex flex-col sm:flex-row sm:items-center justify-between gap-4 hover-lift animate-fade-up stagger-${i + 1}`}>
             <div className="flex-1">
               <p className="font-serif text-xl font-semibold text-foreground">{trip.from} → {trip.to}</p>
               <p className="text-sm text-muted-foreground mt-1">{trip.bus} · {trip.date} · {trip.time}</p>
               <p className="text-xs text-muted-foreground mt-0.5">{trip.seats} seats available</p>
             </div>
             <div className="flex items-center gap-4">
-              <span className="text-xl font-bold text-foreground">{trip.price} <span className="text-xs font-normal text-muted-foreground">ETB</span></span>
-              <Button className="rounded-full gap-2 px-6" size="sm" onClick={() => navigate(`/booking/${trip.id}`)}>
+              <div className="text-right">
+                <span className="text-xl font-bold text-foreground">{trip.price}</span>
+                <span className="text-xs font-normal text-muted-foreground ml-1">ETB</span>
+              </div>
+              <Button className="rounded-full gap-2 px-6 shadow-elevated hover-lift" size="sm" onClick={() => navigate(`/booking/${trip.id}`)}>
                 Book <ArrowRight className="h-3 w-3" />
               </Button>
             </div>
