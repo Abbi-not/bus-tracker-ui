@@ -1,21 +1,29 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Search, ArrowRight } from "lucide-react";
-
-const mockTrips = [
-  { id: "1", from: "Addis Ababa", to: "Hawassa", date: "2025-05-14", time: "06:00AM", price: 450, bus: "Zemen Bus", seats: 15 },
-  { id: "2", from: "Addis Ababa", to: "Bahir Dar", date: "2025-05-15", time: "07:00AM", price: 800, bus: "Selam Bus", seats: 8 },
-  { id: "3", from: "Addis Ababa", to: "Dire Dawa", date: "2025-05-16", time: "05:30AM", price: 650, bus: "Sky Bus", seats: 22 },
-];
+import { tripService, Trip } from "@/services/tripService";
 
 const Trips = () => {
   const navigate = useNavigate();
   const [search, setSearch] = useState("");
-  const filtered = mockTrips.filter(
-    (t) => t.from.toLowerCase().includes(search.toLowerCase()) || t.to.toLowerCase().includes(search.toLowerCase())
-  );
+  const [trips, setTrips] = useState<Trip[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    tripService.passengerList()
+      .then(setTrips)
+      .catch(() => {})
+      .finally(() => setLoading(false));
+  }, []);
+
+  const filtered = trips.filter((t) => {
+    const origin = t.route_detail?.origin?.toLowerCase() ?? "";
+    const dest = t.route_detail?.destination?.toLowerCase() ?? "";
+    const q = search.toLowerCase();
+    return origin.includes(q) || dest.includes(q);
+  });
 
   return (
     <div className="max-w-4xl mx-auto px-6 py-12 relative">
@@ -32,18 +40,22 @@ const Trips = () => {
       </div>
 
       <div className="space-y-4">
+        {loading && <p className="text-muted-foreground text-sm py-8 text-center">Loading trips...</p>}
+        {!loading && filtered.length === 0 && <p className="text-muted-foreground text-sm py-8 text-center">No trips found.</p>}
         {filtered.map((trip, i) => (
           <div key={trip.id} className={`glass-card rounded-2xl p-6 flex flex-col sm:flex-row sm:items-center justify-between gap-4 hover-lift animate-fade-up stagger-${i + 1}`}>
             <div className="flex-1">
-              <p className="font-serif text-xl font-semibold text-foreground">{trip.from} → {trip.to}</p>
-              <p className="text-sm text-muted-foreground mt-1">{trip.bus} · {trip.date} · {trip.time}</p>
-              <p className="text-xs text-muted-foreground mt-0.5">{trip.seats} seats available</p>
+              <p className="font-serif text-xl font-semibold text-foreground">
+                {trip.route_detail?.origin ?? `Route ${trip.route}`} → {trip.route_detail?.destination ?? ""}
+              </p>
+              <p className="text-sm text-muted-foreground mt-1">
+                {trip.bus_detail?.plate_number ?? `Bus ${trip.bus}`} · {trip.departure_time ? new Date(trip.departure_time).toLocaleString() : ""}
+              </p>
+              <p className="text-xs text-muted-foreground mt-0.5">
+                {trip.bus_detail?.capacity ? `${trip.bus_detail.capacity} seats` : ""}
+              </p>
             </div>
             <div className="flex items-center gap-4">
-              <div className="text-right">
-                <span className="text-xl font-bold text-foreground">{trip.price}</span>
-                <span className="text-xs font-normal text-muted-foreground ml-1">ETB</span>
-              </div>
               <Button className="rounded-full gap-2 px-6 shadow-elevated hover-lift" size="sm" onClick={() => navigate(`/booking/${trip.id}`)}>
                 Book <ArrowRight className="h-3 w-3" />
               </Button>

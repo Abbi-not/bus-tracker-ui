@@ -1,22 +1,47 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
+import { tripService, Trip } from "@/services/tripService";
+import { ticketService } from "@/services/ticketService";
 
 const ROWS = 10;
 const COLS = 4;
-const unavailable = [2, 5, 8, 13, 17, 22, 30, 35];
 
 const Booking = () => {
   const { tripId } = useParams();
   const navigate = useNavigate();
   const [selected, setSelected] = useState<number | null>(null);
+  const [trip, setTrip] = useState<Trip | null>(null);
+  const [bookedSeats, setBookedSeats] = useState<number[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [booking, setBooking] = useState(false);
 
-  const handleBook = () => {
+  useEffect(() => {
+    if (!tripId) return;
+    tripService.passengerGet(Number(tripId))
+      .then(setTrip)
+      .catch(() => toast.error("Trip not found"))
+      .finally(() => setLoading(false));
+    // TODO: fetch booked seats from backend when endpoint available
+  }, [tripId]);
+
+  const handleBook = async () => {
     if (selected === null) { toast.error("Please select a seat"); return; }
-    toast.success(`Seat ${selected} booked successfully!`);
-    navigate("/my-tickets");
+    setBooking(true);
+    try {
+      await ticketService.create({ trip: Number(tripId), seat_number: selected });
+      toast.success(`Seat ${selected} booked successfully!`);
+      navigate("/my-tickets");
+    } catch (err: any) {
+      const msg = err.response?.data?.detail || err.response?.data?.seat_number?.[0] || "Booking failed";
+      toast.error(msg);
+    } finally {
+      setBooking(false);
+    }
   };
+
+  if (loading) return <div className="text-center py-20 text-muted-foreground">Loading...</div>;
 
   return (
     <div className="max-w-lg mx-auto px-6 py-12 relative">
@@ -25,7 +50,10 @@ const Booking = () => {
       <div className="mb-8 animate-fade-up">
         <span className="inline-flex text-[11px] text-muted-foreground uppercase tracking-widest glass-subtle rounded-full px-4 py-1.5 mb-3">Booking</span>
         <h1 className="text-3xl font-serif font-bold text-foreground">Select your seat</h1>
-        <p className="text-sm text-muted-foreground mt-1">Trip #{tripId} · Zemen Bus</p>
+        <p className="text-sm text-muted-foreground mt-1">
+          {trip?.route_detail ? `${trip.route_detail.origin} → ${trip.route_detail.destination}` : `Trip #${tripId}`}
+          {trip?.bus_detail ? ` · ${trip.bus_detail.plate_number}` : ""}
+        </p>
       </div>
 
       <div className="glass-card rounded-2xl p-6 mb-6 animate-fade-up stagger-1">
@@ -37,7 +65,7 @@ const Booking = () => {
         <div className="grid gap-2" style={{ gridTemplateColumns: `repeat(${COLS}, 1fr)` }}>
           {Array.from({ length: ROWS * COLS }, (_, i) => {
             const seat = i + 1;
-            const isTaken = unavailable.includes(seat);
+            const isTaken = bookedSeats.includes(seat);
             const isSelected = selected === seat;
             return (
               <button
@@ -63,7 +91,9 @@ const Booking = () => {
         <p className="text-sm text-muted-foreground">
           {selected ? `Seat ${selected} selected` : "No seat selected"}
         </p>
-        <Button className="rounded-full px-8 shadow-elevated hover-lift" onClick={handleBook}>Confirm Booking</Button>
+        <Button className="rounded-full px-8 shadow-elevated hover-lift" onClick={handleBook} disabled={booking}>
+          {booking ? "Booking..." : "Confirm Booking"}
+        </Button>
       </div>
     </div>
   );

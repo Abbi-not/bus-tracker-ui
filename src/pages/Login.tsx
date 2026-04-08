@@ -4,6 +4,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Bus } from "lucide-react";
+import { toast } from "sonner";
 
 const Login = () => {
   const { login } = useAuth();
@@ -17,9 +18,16 @@ const Login = () => {
     setLoading(true);
     try {
       await login(email, password);
-      if (email.includes("admin")) navigate("/admin/dashboard");
-      else if (email.includes("driver")) navigate("/driver/dashboard");
+      // Get user from localStorage since login just set it
+      const stored = localStorage.getItem("btts_user");
+      const user = stored ? JSON.parse(stored) : null;
+      if (user?.role === "admin") navigate("/admin/dashboard");
+      else if (user?.role === "driver") navigate("/driver/dashboard");
       else navigate("/dashboard");
+      toast.success("Welcome back!");
+    } catch (err: any) {
+      const msg = err.response?.data?.detail || err.response?.data?.error || "Invalid credentials";
+      toast.error(msg);
     } finally {
       setLoading(false);
     }
@@ -42,7 +50,6 @@ const Login = () => {
             <div>
               <label className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wider mb-2 block">Email</label>
               <Input type="email" placeholder="you@example.com" className="rounded-xl h-12 bg-background/50 border-border/40" value={email} onChange={(e) => setEmail(e.target.value)} required />
-              <p className="text-[11px] text-muted-foreground mt-1.5">Tip: use "admin@" for admin, "driver@" for driver</p>
             </div>
             <div>
               <label className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wider mb-2 block">Password</label>

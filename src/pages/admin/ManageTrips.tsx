@@ -1,25 +1,62 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
-import { Plus, X } from "lucide-react";
+import { Plus, X, Trash2 } from "lucide-react";
 import { toast } from "sonner";
-
-const initialTrips = [
-  { id: "1", route: "AA → Hawassa", bus: "Zemen Bus", date: "2025-05-14", time: "06:00AM", status: "Active" },
-  { id: "2", route: "AA → Bahir Dar", bus: "Selam Bus", date: "2025-05-15", time: "07:00AM", status: "Scheduled" },
-  { id: "3", route: "AA → Dire Dawa", bus: "Sky Bus", date: "2025-05-16", time: "05:30AM", status: "Completed" },
-];
+import { tripService, Trip } from "@/services/tripService";
 
 const ManageTrips = () => {
-  const [trips] = useState(initialTrips);
+  const [trips, setTrips] = useState<Trip[]>([]);
   const [showForm, setShowForm] = useState(false);
+  const [loading, setLoading] = useState(true);
+  const [busId, setBusId] = useState("");
+  const [routeId, setRouteId] = useState("");
+  const [driverId, setDriverId] = useState("");
+  const [departureTime, setDepartureTime] = useState("");
+
+  const fetchTrips = () => {
+    tripService.adminList()
+      .then(setTrips)
+      .catch(() => toast.error("Failed to load trips"))
+      .finally(() => setLoading(false));
+  };
+
+  useEffect(() => { fetchTrips(); }, []);
+
+  const handleCreate = async (e: React.FormEvent) => {
+    e.preventDefault();
+    try {
+      await tripService.adminCreate({
+        bus: Number(busId),
+        route: Number(routeId),
+        driver: Number(driverId),
+        departure_time: departureTime,
+      });
+      toast.success("Trip added!");
+      setShowForm(false);
+      setBusId(""); setRouteId(""); setDriverId(""); setDepartureTime("");
+      fetchTrips();
+    } catch (err: any) {
+      toast.error(err.response?.data?.detail || "Failed to add trip");
+    }
+  };
+
+  const handleDelete = async (id: number) => {
+    try {
+      await tripService.adminDelete(id);
+      toast.success("Trip removed");
+      setTrips(prev => prev.filter(t => t.id !== id));
+    } catch {
+      toast.error("Failed to delete trip");
+    }
+  };
 
   const statusStyle = (status: string) => {
-    switch (status) {
-      case "Active": return "bg-success/10 text-success border-success/20";
-      case "Scheduled": return "bg-primary/10 text-primary border-primary/20";
+    switch (status?.toLowerCase()) {
+      case "active": return "bg-success/10 text-success border-success/20";
+      case "scheduled": return "bg-primary/10 text-primary border-primary/20";
       default: return "bg-muted text-muted-foreground border-border/20";
     }
   };
@@ -42,11 +79,11 @@ const ManageTrips = () => {
       {showForm && (
         <div className="glass-card rounded-2xl p-6 mb-8 animate-scale-in">
           <h2 className="text-lg font-serif font-semibold text-foreground mb-4">New Trip</h2>
-          <form className="grid grid-cols-1 sm:grid-cols-2 gap-4" onSubmit={(e) => { e.preventDefault(); toast.success("Trip added!"); setShowForm(false); }}>
-            <Input placeholder="Route (e.g. AA → Hawassa)" className="rounded-xl h-12 bg-background/50 border-border/40" required />
-            <Input placeholder="Bus Name" className="rounded-xl h-12 bg-background/50 border-border/40" required />
-            <Input type="date" className="rounded-xl h-12 bg-background/50 border-border/40" required />
-            <Input placeholder="Time" className="rounded-xl h-12 bg-background/50 border-border/40" required />
+          <form className="grid grid-cols-1 sm:grid-cols-2 gap-4" onSubmit={handleCreate}>
+            <Input placeholder="Bus ID" type="number" className="rounded-xl h-12 bg-background/50 border-border/40" value={busId} onChange={e => setBusId(e.target.value)} required />
+            <Input placeholder="Route ID" type="number" className="rounded-xl h-12 bg-background/50 border-border/40" value={routeId} onChange={e => setRouteId(e.target.value)} required />
+            <Input placeholder="Driver ID" type="number" className="rounded-xl h-12 bg-background/50 border-border/40" value={driverId} onChange={e => setDriverId(e.target.value)} required />
+            <Input type="datetime-local" className="rounded-xl h-12 bg-background/50 border-border/40" value={departureTime} onChange={e => setDepartureTime(e.target.value)} required />
             <div className="sm:col-span-2">
               <Button type="submit" className="rounded-full px-8 shadow-elevated hover-lift">Save</Button>
             </div>
@@ -55,32 +92,48 @@ const ManageTrips = () => {
       )}
 
       <div className="glass-card rounded-2xl overflow-hidden animate-fade-up stagger-1">
-        <Table>
-          <TableHeader>
-            <TableRow className="border-border/30 hover:bg-transparent">
-              <TableHead className="text-[11px] uppercase tracking-wider text-muted-foreground font-semibold">Route</TableHead>
-              <TableHead className="text-[11px] uppercase tracking-wider text-muted-foreground font-semibold">Bus</TableHead>
-              <TableHead className="text-[11px] uppercase tracking-wider text-muted-foreground font-semibold">Date</TableHead>
-              <TableHead className="text-[11px] uppercase tracking-wider text-muted-foreground font-semibold">Time</TableHead>
-              <TableHead className="text-[11px] uppercase tracking-wider text-muted-foreground font-semibold">Status</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {trips.map((t) => (
-              <TableRow key={t.id} className="border-border/20 hover:bg-secondary/30 transition-colors">
-                <TableCell className="font-medium text-foreground">{t.route}</TableCell>
-                <TableCell className="text-muted-foreground">{t.bus}</TableCell>
-                <TableCell className="text-muted-foreground font-mono text-sm">{t.date}</TableCell>
-                <TableCell className="text-muted-foreground">{t.time}</TableCell>
-                <TableCell>
-                  <Badge variant="outline" className={`rounded-full px-3 ${statusStyle(t.status)}`}>
-                    {t.status}
-                  </Badge>
-                </TableCell>
+        {loading ? (
+          <p className="text-muted-foreground text-sm py-8 text-center">Loading...</p>
+        ) : (
+          <Table>
+            <TableHeader>
+              <TableRow className="border-border/30 hover:bg-transparent">
+                <TableHead className="text-[11px] uppercase tracking-wider text-muted-foreground font-semibold">ID</TableHead>
+                <TableHead className="text-[11px] uppercase tracking-wider text-muted-foreground font-semibold">Route</TableHead>
+                <TableHead className="text-[11px] uppercase tracking-wider text-muted-foreground font-semibold">Bus</TableHead>
+                <TableHead className="text-[11px] uppercase tracking-wider text-muted-foreground font-semibold">Departure</TableHead>
+                <TableHead className="text-[11px] uppercase tracking-wider text-muted-foreground font-semibold">Status</TableHead>
+                <TableHead className="text-[11px] uppercase tracking-wider text-muted-foreground font-semibold">Actions</TableHead>
               </TableRow>
-            ))}
-          </TableBody>
-        </Table>
+            </TableHeader>
+            <TableBody>
+              {trips.map((t) => (
+                <TableRow key={t.id} className="border-border/20 hover:bg-secondary/30 transition-colors">
+                  <TableCell className="text-muted-foreground">{t.id}</TableCell>
+                  <TableCell className="font-medium text-foreground">
+                    {t.route_detail ? `${t.route_detail.origin} → ${t.route_detail.destination}` : `Route ${t.route}`}
+                  </TableCell>
+                  <TableCell className="text-muted-foreground font-mono text-sm">
+                    {t.bus_detail?.plate_number ?? `Bus ${t.bus}`}
+                  </TableCell>
+                  <TableCell className="text-muted-foreground text-sm">
+                    {t.departure_time ? new Date(t.departure_time).toLocaleString() : ""}
+                  </TableCell>
+                  <TableCell>
+                    <Badge variant="outline" className={`rounded-full px-3 ${statusStyle(t.status ?? "")}`}>
+                      {t.status ?? "scheduled"}
+                    </Badge>
+                  </TableCell>
+                  <TableCell>
+                    <Button variant="ghost" size="sm" className="text-destructive hover:text-destructive" onClick={() => handleDelete(t.id)}>
+                      <Trash2 className="h-4 w-4" />
+                    </Button>
+                  </TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        )}
       </div>
     </div>
   );

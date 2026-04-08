@@ -13,7 +13,7 @@ A modern web application for managing bus transportation, built with React, Vite
 
 ### Driver
 - View assigned trips
-- Update trip status (Not Started → In Progress → Completed)
+- Update trip status
 - Access tracking interface
 
 ### Admin
@@ -31,7 +31,7 @@ A modern web application for managing bus transportation, built with React, Vite
 | [TypeScript 5](https://www.typescriptlang.org) | Type safety |
 | [Tailwind CSS 3](https://tailwindcss.com) | Utility-first styling |
 | [React Router 6](https://reactrouter.com) | Client-side routing |
-| [Axios](https://axios-http.com) | HTTP client |
+| [Axios](https://axios-http.com) | HTTP client with JWT interceptors |
 | [Leaflet](https://leafletjs.com) + [React Leaflet](https://react-leaflet.js.org) | Map & bus tracking |
 | [Recharts](https://recharts.org) | Dashboard charts |
 | [shadcn/ui](https://ui.shadcn.com) | UI component library |
@@ -50,22 +50,25 @@ A modern web application for managing bus transportation, built with React, Vite
 ### Installation
 
 ```bash
-# Clone the repository
 git clone <your-repo-url>
 cd <project-folder>
-
-# Install dependencies
 npm install
-# or
-bun install
 ```
+
+### Environment Variable
+
+Create a `.env` file in the project root:
+
+```env
+VITE_API_BASE_URL=http://localhost:8000/api
+```
+
+This points to your Django REST Framework backend. All API calls use this base URL with **trailing slashes** (Django requirement).
 
 ### Development
 
 ```bash
 npm run dev
-# or
-bun dev
 ```
 
 The app will start at **http://localhost:8080**.
@@ -77,25 +80,50 @@ npm run build
 npm run preview
 ```
 
-## Usage
+## 🔐 Backend API Integration
 
-### Quick Login (Mock Auth)
+This frontend is designed to work with a **Django REST Framework** backend using **JWT authentication** (`rest_framework_simplejwt`).
 
-The app uses mock authentication. Log in with any email to test different roles:
+### API Layer (`src/lib/api.ts`)
+- Axios instance with automatic **JWT token injection** (`Authorization: Bearer <token>`)
+- **Auto token refresh** on 401 responses via `POST /api/auth/token/refresh/`
+- All URLs include trailing slashes (Django requirement)
 
-| Email contains | Role assigned |
-|----------------|---------------|
-| `admin` | Admin |
-| `driver` | Driver |
-| anything else | Passenger |
+### Services (`src/services/`)
 
-Password can be any non-empty string.
+| Service | Endpoints | Access |
+|---------|-----------|--------|
+| `authService` | `/auth/register/`, `/auth/login/`, `/auth/me/` | Public |
+| `busService` | `/admin/buses/` (CRUD), `/buses/` (read) | Admin / Public |
+| `routeService` | `/admin/routes/` (CRUD) | Admin |
+| `tripService` | `/admin/trips/`, `/passenger/trips/`, `/driver/trips/` | Role-based |
+| `ticketService` | `/passenger/tickets/` (CRUD) | Passenger |
 
-### Example Flows
+### Auth Flow
 
-1. **Passenger**: Register or log in → Browse trips → Select seats → Book → View tickets
-2. **Driver**: Log in with a "driver@" email → View assigned trips → Update trip status
-3. **Admin**: Log in with an "admin@" email → Manage buses, routes, and trips
+1. Register → `POST /api/auth/register/` (username, email, password, role)
+2. Login → `POST /api/auth/login/` → receives `{ access, refresh }`
+3. Tokens stored in `localStorage`, access token sent with every request
+4. On 401 → auto-refresh via `POST /api/auth/token/refresh/`
+5. User profile → `GET /api/auth/me/`
+
+### Expected Backend Data Models
+
+```
+User     { id, username, email, role }
+Bus      { id, plate_number, capacity }
+Route    { id, origin, destination }
+Trip     { id, bus, route, driver, departure_time, status }
+Ticket   { id, trip, passenger, seat_number, status }
+```
+
+### Role-Based Routing
+
+| Role | Dashboard | URL Prefix |
+|------|-----------|------------|
+| Admin | `/admin/dashboard` | `/api/admin/...` |
+| Driver | `/driver/dashboard` | `/api/driver/...` |
+| Passenger | `/dashboard` | `/api/passenger/...` |
 
 ## Project Structure
 
@@ -106,11 +134,13 @@ src/
 ├── contexts/         # React context providers (Auth)
 ├── hooks/            # Custom React hooks
 ├── layouts/          # Page layout wrappers
+├── lib/              # API client & utilities
+├── services/         # API service modules (auth, bus, route, trip, ticket)
 ├── pages/
 │   ├── passenger/    # Passenger pages (Dashboard, Trips, Booking, etc.)
 │   ├── driver/       # Driver pages
 │   └── admin/        # Admin pages (ManageBuses, ManageRoutes, etc.)
-└── lib/              # Utility functions
+└── main.tsx          # App entry point
 ```
 
 ## License
