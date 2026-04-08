@@ -1,23 +1,41 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
 import { CalendarCheck, MapPin, Clock, Bell, Users } from "lucide-react";
-
-const stats = [
-  { label: "Scheduled", value: 3, icon: CalendarCheck, color: "bg-primary/10 text-primary" },
-  { label: "Active", value: 3, icon: MapPin, color: "bg-success/10 text-success" },
-  { label: "Completed", value: 1, icon: Clock, color: "bg-accent text-accent-foreground" },
-  { label: "Alerts", value: 2, icon: Bell, color: "bg-warning/10 text-warning" },
-];
-
-const mockTrip = {
-  id: "DTO02", from: "AA", to: "Hawassa", bus: "Zemen Bus",
-  plate: "Zm14520", date: "2025/05/14", time: "06:00Am-12:00AM", passengers: 40,
-};
+import { tripService, Trip } from "@/services/tripService";
+import { toast } from "sonner";
 
 const DriverDashboard = () => {
   const { user } = useAuth();
   const [tab, setTab] = useState<"active" | "all" | "notifications">("active");
+  const [trips, setTrips] = useState<Trip[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    tripService.driverList()
+      .then(setTrips)
+      .catch(() => {})
+      .finally(() => setLoading(false));
+  }, []);
+
+  const activeTrips = trips.filter(t => t.status === "active" || t.status === "Active");
+
+  const stats = [
+    { label: "Scheduled", value: trips.filter(t => t.status === "scheduled" || t.status === "Scheduled").length, icon: CalendarCheck, color: "bg-primary/10 text-primary" },
+    { label: "Active", value: activeTrips.length, icon: MapPin, color: "bg-success/10 text-success" },
+    { label: "Completed", value: trips.filter(t => t.status === "completed" || t.status === "Completed").length, icon: Clock, color: "bg-accent text-accent-foreground" },
+    { label: "Total", value: trips.length, icon: Bell, color: "bg-warning/10 text-warning" },
+  ];
+
+  const handleCompleteTrip = async (tripId: number) => {
+    try {
+      await tripService.driverUpdate(tripId, { status: "completed" });
+      setTrips(prev => prev.map(t => t.id === tripId ? { ...t, status: "completed" } : t));
+      toast.success("Trip completed!");
+    } catch {
+      toast.error("Failed to update trip");
+    }
+  };
 
   return (
     <div className="max-w-5xl mx-auto px-6 py-12 relative">
@@ -25,7 +43,7 @@ const DriverDashboard = () => {
 
       <div className="mb-10 animate-fade-up">
         <span className="inline-flex text-[11px] text-muted-foreground uppercase tracking-widest glass-subtle rounded-full px-4 py-1.5 mb-3">Driver</span>
-        <h1 className="text-3xl md:text-4xl font-serif font-bold text-foreground">Welcome back, {user?.name}</h1>
+        <h1 className="text-3xl md:text-4xl font-serif font-bold text-foreground">Welcome back, {user?.username}</h1>
       </div>
 
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-10">
@@ -42,63 +60,68 @@ const DriverDashboard = () => {
 
       <div className="flex gap-2 mb-6">
         {(["active", "all", "notifications"] as const).map((t) => (
-          <button
-            key={t}
-            onClick={() => setTab(t)}
+          <button key={t} onClick={() => setTab(t)}
             className={`text-xs uppercase tracking-wider px-5 py-2 rounded-full transition-all duration-300 ${
               tab === t ? "bg-primary text-primary-foreground shadow-elevated" : "glass-subtle text-muted-foreground hover:text-foreground"
-            }`}
-          >
+            }`}>
             {t === "active" ? "Active" : t === "all" ? "All Trips" : "Alerts"}
           </button>
         ))}
       </div>
 
       {tab === "active" && (
-        <div className="glass-card rounded-2xl p-6 animate-scale-in">
-          <div className="mb-1">
-            <h2 className="text-xl font-serif font-semibold text-foreground">Current Trip</h2>
-            <p className="text-xs text-muted-foreground font-mono">Trip ID: {mockTrip.id}</p>
-          </div>
-          <div className="mt-4 mb-6">
-            <p className="font-semibold text-foreground text-lg">{mockTrip.from} → {mockTrip.to}</p>
-            <p className="text-sm text-muted-foreground">{mockTrip.bus} · {mockTrip.plate}</p>
-          </div>
-          <div className="grid grid-cols-2 md:grid-cols-3 gap-3 text-sm mb-6">
-            {[
-              { icon: CalendarCheck, val: mockTrip.date },
-              { icon: Clock, val: mockTrip.time },
-              { icon: Users, val: `${mockTrip.passengers} passengers` },
-            ].map((item, i) => (
-              <div key={i} className="flex items-center gap-2 text-muted-foreground glass-subtle rounded-xl px-3 py-2">
-                <item.icon className="h-4 w-4 text-primary" /> {item.val}
+        <div className="space-y-4 animate-scale-in">
+          {loading && <p className="text-muted-foreground text-sm py-8 text-center">Loading...</p>}
+          {!loading && activeTrips.length === 0 && <p className="text-muted-foreground text-sm py-8 text-center">No active trips.</p>}
+          {activeTrips.map((trip) => (
+            <div key={trip.id} className="glass-card rounded-2xl p-6">
+              <div className="mb-1">
+                <h2 className="text-xl font-serif font-semibold text-foreground">
+                  {trip.route_detail?.origin ?? ""} → {trip.route_detail?.destination ?? ""}
+                </h2>
+                <p className="text-xs text-muted-foreground font-mono">Trip ID: {trip.id}</p>
               </div>
-            ))}
-          </div>
-          <div className="flex flex-wrap gap-3">
-            <Button className="rounded-full px-6 shadow-elevated hover-lift">Complete Trip</Button>
-            <Button variant="outline" className="rounded-full px-6 border-border/40 hover-lift">Update Location</Button>
-          </div>
+              <div className="grid grid-cols-2 md:grid-cols-3 gap-3 text-sm my-4">
+                {[
+                  { icon: CalendarCheck, val: trip.departure_time ? new Date(trip.departure_time).toLocaleDateString() : "" },
+                  { icon: Clock, val: trip.departure_time ? new Date(trip.departure_time).toLocaleTimeString() : "" },
+                  { icon: Users, val: trip.bus_detail?.plate_number ?? `Bus ${trip.bus}` },
+                ].map((item, i) => (
+                  <div key={i} className="flex items-center gap-2 text-muted-foreground glass-subtle rounded-xl px-3 py-2">
+                    <item.icon className="h-4 w-4 text-primary" /> {item.val}
+                  </div>
+                ))}
+              </div>
+              <div className="flex flex-wrap gap-3">
+                <Button className="rounded-full px-6 shadow-elevated hover-lift" onClick={() => handleCompleteTrip(trip.id)}>Complete Trip</Button>
+              </div>
+            </div>
+          ))}
         </div>
       )}
 
       {tab === "all" && (
-        <div className="glass-card rounded-2xl p-8 text-muted-foreground text-sm text-center animate-scale-in">
-          All trips list will appear here.
+        <div className="space-y-3 animate-scale-in">
+          {loading && <p className="text-muted-foreground text-sm py-8 text-center">Loading...</p>}
+          {!loading && trips.length === 0 && <p className="text-muted-foreground text-sm py-8 text-center">No trips.</p>}
+          {trips.map((trip) => (
+            <div key={trip.id} className="glass-card rounded-2xl p-5 hover-lift">
+              <div className="flex justify-between items-start">
+                <div>
+                  <p className="font-semibold text-foreground">{trip.route_detail?.origin ?? ""} → {trip.route_detail?.destination ?? ""}</p>
+                  <p className="text-sm text-muted-foreground mt-0.5">{trip.bus_detail?.plate_number ?? `Bus ${trip.bus}`}</p>
+                </div>
+                <span className="text-[11px] px-3 py-1 rounded-full bg-primary/10 text-primary font-medium capitalize">{trip.status ?? "scheduled"}</span>
+              </div>
+              <p className="text-xs text-muted-foreground mt-2">{trip.departure_time ? new Date(trip.departure_time).toLocaleString() : ""}</p>
+            </div>
+          ))}
         </div>
       )}
 
       {tab === "notifications" && (
-        <div className="space-y-3 animate-scale-in">
-          {[
-            { msg: "New trip assigned: AA → Hawassa", time: "2 hours ago" },
-            { msg: "Schedule updated for May 20", time: "1 day ago" },
-          ].map((n, i) => (
-            <div key={i} className="glass-card rounded-2xl p-5 hover-lift">
-              <p className="text-sm font-medium text-foreground">{n.msg}</p>
-              <p className="text-xs text-muted-foreground mt-1">{n.time}</p>
-            </div>
-          ))}
+        <div className="glass-card rounded-2xl p-8 text-muted-foreground text-sm text-center animate-scale-in">
+          No new notifications.
         </div>
       )}
     </div>

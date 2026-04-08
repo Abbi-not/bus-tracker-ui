@@ -57,18 +57,12 @@ const Navbar = () => {
             <span className="text-lg font-serif font-bold text-foreground tracking-tight">BusTrack</span>
           </Link>
 
-          {/* Desktop nav - pill container */}
           <div className="hidden md:flex items-center gap-1 glass-subtle rounded-full px-1.5 py-1">
             {getLinks().map((link) => (
-              <Link
-                key={link.to}
-                to={link.to}
+              <Link key={link.to} to={link.to}
                 className={`text-sm px-4 py-1.5 rounded-full transition-all duration-300 ${
-                  isActive(link.to)
-                    ? "bg-primary text-primary-foreground shadow-sm"
-                    : "text-muted-foreground hover:text-foreground hover:bg-secondary/60"
-                }`}
-              >
+                  isActive(link.to) ? "bg-primary text-primary-foreground shadow-sm" : "text-muted-foreground hover:text-foreground hover:bg-secondary/60"
+                }`}>
                 {link.label}
               </Link>
             ))}
@@ -78,34 +72,17 @@ const Navbar = () => {
             {isAuthenticated ? (
               <>
                 <div className="glass-subtle rounded-full px-4 py-1.5 mr-1">
-                  <span className="text-sm text-muted-foreground">{user?.name}</span>
+                  <span className="text-sm text-muted-foreground">{user?.username}</span>
                 </div>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  className="rounded-full text-xs px-5 hover-lift border-border/50"
-                  onClick={() => { logout(); navigate("/"); }}
-                >
+                <Button variant="outline" size="sm" className="rounded-full text-xs px-5 hover-lift border-border/50"
+                  onClick={() => { logout(); navigate("/"); }}>
                   Logout
                 </Button>
               </>
             ) : (
               <>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  className="text-sm rounded-full px-5 hover:bg-secondary/60"
-                  onClick={() => navigate("/login")}
-                >
-                  Login
-                </Button>
-                <Button
-                  size="sm"
-                  className="rounded-full text-xs px-6 shadow-elevated hover-lift"
-                  onClick={() => navigate("/register")}
-                >
-                  Get Started
-                </Button>
+                <Button variant="ghost" size="sm" className="text-sm rounded-full px-5 hover:bg-secondary/60" onClick={() => navigate("/login")}>Login</Button>
+                <Button size="sm" className="rounded-full text-xs px-6 shadow-elevated hover-lift" onClick={() => navigate("/register")}>Get Started</Button>
               </>
             )}
           </div>
@@ -119,26 +96,19 @@ const Navbar = () => {
       {mobileOpen && (
         <div className="md:hidden glass mx-4 mb-2 rounded-2xl px-4 pb-4 pt-2 animate-scale-in shadow-elevated-lg">
           {getLinks().map((link) => (
-            <Link
-              key={link.to}
-              to={link.to}
+            <Link key={link.to} to={link.to}
               className={`block py-2.5 px-3 text-sm rounded-xl transition-colors ${
                 isActive(link.to) ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:text-foreground hover:bg-secondary/60"
               }`}
-              onClick={() => setMobileOpen(false)}
-            >
+              onClick={() => setMobileOpen(false)}>
               {link.label}
             </Link>
           ))}
           <div className="pt-2 mt-2 border-t border-border/30">
             {isAuthenticated ? (
-              <Button variant="ghost" size="sm" className="w-full justify-start text-sm rounded-xl" onClick={() => { logout(); navigate("/"); setMobileOpen(false); }}>
-                Logout
-              </Button>
+              <Button variant="ghost" size="sm" className="w-full justify-start text-sm rounded-xl" onClick={() => { logout(); navigate("/"); setMobileOpen(false); }}>Logout</Button>
             ) : (
-              <Button size="sm" className="w-full rounded-full shadow-elevated" onClick={() => { navigate("/login"); setMobileOpen(false); }}>
-                Login
-              </Button>
+              <Button size="sm" className="w-full rounded-full shadow-elevated" onClick={() => { navigate("/login"); setMobileOpen(false); }}>Login</Button>
             )}
           </div>
         </div>

@@ -5,11 +5,12 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Bus } from "lucide-react";
+import { toast } from "sonner";
 
 const Register = () => {
   const { register } = useAuth();
   const navigate = useNavigate();
-  const [name, setName] = useState("");
+  const [username, setUsername] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [role, setRole] = useState<UserRole>("passenger");
@@ -19,10 +20,15 @@ const Register = () => {
     e.preventDefault();
     setLoading(true);
     try {
-      await register(name, email, password, role);
+      await register(username, email, password, role);
       if (role === "admin") navigate("/admin/dashboard");
       else if (role === "driver") navigate("/driver/dashboard");
       else navigate("/dashboard");
+      toast.success("Account created!");
+    } catch (err: any) {
+      const data = err.response?.data;
+      const msg = typeof data === "string" ? data : data?.detail || data?.email?.[0] || data?.username?.[0] || "Registration failed";
+      toast.error(msg);
     } finally {
       setLoading(false);
     }
@@ -43,8 +49,8 @@ const Register = () => {
           </div>
           <form onSubmit={handleSubmit} className="space-y-4">
             <div>
-              <label className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wider mb-2 block">Full Name</label>
-              <Input placeholder="Your full name" className="rounded-xl h-12 bg-background/50 border-border/40" value={name} onChange={(e) => setName(e.target.value)} required />
+              <label className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wider mb-2 block">Username</label>
+              <Input placeholder="Your username" className="rounded-xl h-12 bg-background/50 border-border/40" value={username} onChange={(e) => setUsername(e.target.value)} required />
             </div>
             <div>
               <label className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wider mb-2 block">Email</label>
