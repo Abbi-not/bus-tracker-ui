@@ -18,6 +18,7 @@ import Booking from "@/pages/passenger/Booking";
 import MyTickets from "@/pages/passenger/MyTickets";
 import TrackBus from "@/pages/passenger/TrackBus";
 import Feedback from "@/pages/passenger/Feedback";
+import PaymentResult from "@/pages/passenger/PaymentResult";
 
 import DriverDashboard from "@/pages/driver/DriverDashboard";
 
