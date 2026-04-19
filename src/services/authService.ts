@@ -1,4 +1,4 @@
-import api from "@/lib/api";
+import { wait, roleFromEmail } from "@/lib/mockData";
 
 export interface LoginResponse {
   access: string;
@@ -12,24 +12,45 @@ export interface User {
   role: "admin" | "driver" | "passenger";
 }
 
+const FAKE_TOKEN = "mock.jwt.token";
+
 export const authService = {
   login: async (email: string, password: string): Promise<{ tokens: LoginResponse; user: User }> => {
-    const { data: tokens } = await api.post<LoginResponse>("/auth/login/", { email, password });
+    await wait(400);
+    const role = roleFromEmail(email);
+    const user: User = {
+      id: 1,
+      username: email.split("@")[0] || "user",
+      email,
+      role,
+    };
+    const tokens: LoginResponse = { access: FAKE_TOKEN, refresh: FAKE_TOKEN };
     localStorage.setItem("btts_access", tokens.access);
     localStorage.setItem("btts_refresh", tokens.refresh);
-    const { data: user } = await api.get<User>("/auth/me/");
+    localStorage.setItem("btts_user", JSON.stringify(user));
     return { tokens, user };
   },
 
-  register: async (username: string, email: string, password: string, role: string): Promise<{ tokens: LoginResponse; user: User }> => {
-    await api.post("/auth/register/", { username, email, password, role });
-    // Auto-login after register
-    return authService.login(email, password);
+  register: async (username: string, email: string, password: string, role: string) => {
+    await wait(400);
+    const user: User = {
+      id: 1,
+      username,
+      email,
+      role: (role as User["role"]) || roleFromEmail(email),
+    };
+    const tokens: LoginResponse = { access: FAKE_TOKEN, refresh: FAKE_TOKEN };
+    localStorage.setItem("btts_access", tokens.access);
+    localStorage.setItem("btts_refresh", tokens.refresh);
+    localStorage.setItem("btts_user", JSON.stringify(user));
+    return { tokens, user };
   },
 
   getMe: async (): Promise<User> => {
-    const { data } = await api.get<User>("/auth/me/");
-    return data;
+    await wait(150);
+    const stored = localStorage.getItem("btts_user");
+    if (stored) return JSON.parse(stored);
+    throw new Error("No user");
   },
 
   logout: () => {
@@ -38,21 +59,13 @@ export const authService = {
     localStorage.removeItem("btts_user");
   },
 
-  isAdmin: async (): Promise<boolean> => {
-    try {
-      await api.get("/auth/admin-check/");
-      return true;
-    } catch {
-      return false;
-    }
+  isAdmin: async () => {
+    const stored = localStorage.getItem("btts_user");
+    return stored ? JSON.parse(stored).role === "admin" : false;
   },
 
-  isDriver: async (): Promise<boolean> => {
-    try {
-      await api.get("/auth/driver-check/");
-      return true;
-    } catch {
-      return false;
-    }
+  isDriver: async () => {
+    const stored = localStorage.getItem("btts_user");
+    return stored ? JSON.parse(stored).role === "driver" : false;
   },
 };
