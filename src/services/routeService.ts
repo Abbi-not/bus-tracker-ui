@@ -1,4 +1,4 @@
-import api from "@/lib/api";
+import { mockRoutes, ids, wait, MockRoute } from "@/lib/mockData";
 
 export interface BusRoute {
   id: number;
@@ -8,18 +8,28 @@ export interface BusRoute {
 
 export const routeService = {
   adminList: async (): Promise<BusRoute[]> => {
-    const { data } = await api.get<BusRoute[]>("/admin/routes/");
-    return data;
+    await wait();
+    return [...mockRoutes];
   },
   adminCreate: async (route: Partial<BusRoute>): Promise<BusRoute> => {
-    const { data } = await api.post<BusRoute>("/admin/routes/", route);
-    return data;
+    await wait();
+    const newRoute: MockRoute = {
+      id: ids.route(),
+      origin: route.origin || "",
+      destination: route.destination || "",
+    };
+    mockRoutes.push(newRoute);
+    return newRoute;
   },
   adminUpdate: async (id: number, route: Partial<BusRoute>): Promise<BusRoute> => {
-    const { data } = await api.put<BusRoute>(`/admin/routes/${id}/`, route);
-    return data;
+    await wait();
+    const idx = mockRoutes.findIndex((r) => r.id === id);
+    if (idx >= 0) mockRoutes[idx] = { ...mockRoutes[idx], ...route } as MockRoute;
+    return mockRoutes[idx];
   },
   adminDelete: async (id: number): Promise<void> => {
-    await api.delete(`/admin/routes/${id}/`);
+    await wait();
+    const idx = mockRoutes.findIndex((r) => r.id === id);
+    if (idx >= 0) mockRoutes.splice(idx, 1);
   },
 };

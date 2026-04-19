@@ -1,4 +1,4 @@
-import api from "@/lib/api";
+import { mockBuses, ids, wait, MockBus } from "@/lib/mockData";
 
 export interface Bus {
   id: number;
@@ -9,26 +9,33 @@ export interface Bus {
 }
 
 export const busService = {
-  // Public
   list: async (): Promise<Bus[]> => {
-    const { data } = await api.get<Bus[]>("/buses/");
-    return data;
+    await wait();
+    return [...mockBuses];
   },
-
-  // Admin CRUD
   adminList: async (): Promise<Bus[]> => {
-    const { data } = await api.get<Bus[]>("/admin/buses/");
-    return data;
+    await wait();
+    return [...mockBuses];
   },
   adminCreate: async (bus: Partial<Bus>): Promise<Bus> => {
-    const { data } = await api.post<Bus>("/admin/buses/", bus);
-    return data;
+    await wait();
+    const newBus: MockBus = {
+      id: ids.bus(),
+      plate_number: bus.plate_number || "NEW-0000",
+      capacity: bus.capacity || 0,
+    };
+    mockBuses.push(newBus);
+    return newBus;
   },
   adminUpdate: async (id: number, bus: Partial<Bus>): Promise<Bus> => {
-    const { data } = await api.put<Bus>(`/admin/buses/${id}/`, bus);
-    return data;
+    await wait();
+    const idx = mockBuses.findIndex((b) => b.id === id);
+    if (idx >= 0) mockBuses[idx] = { ...mockBuses[idx], ...bus } as MockBus;
+    return mockBuses[idx];
   },
   adminDelete: async (id: number): Promise<void> => {
-    await api.delete(`/admin/buses/${id}/`);
+    await wait();
+    const idx = mockBuses.findIndex((b) => b.id === id);
+    if (idx >= 0) mockBuses.splice(idx, 1);
   },
 };
