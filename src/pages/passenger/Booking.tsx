@@ -30,13 +30,19 @@ const Booking = () => {
     if (selected === null) { toast.error("Please select a seat"); return; }
     setBooking(true);
     try {
-      await ticketService.create({ trip: Number(tripId), seat_number: selected });
-      toast.success(`Seat ${selected} booked successfully!`);
-      navigate("/my-tickets");
+      const ticket = await ticketService.create({ trip: Number(tripId), seat_number: selected });
+      toast.success(`Seat ${selected} reserved. Redirecting to payment...`);
+      try {
+        const { checkout_url } = await ticketService.pay(ticket.id);
+        sessionStorage.setItem("btts_pending_ticket", String(ticket.id));
+        window.location.href = checkout_url;
+      } catch (payErr: any) {
+        toast.error(payErr.response?.data?.detail || "Could not start payment");
+        navigate("/my-tickets");
+      }
     } catch (err: any) {
       const msg = err.response?.data?.detail || err.response?.data?.seat_number?.[0] || "Booking failed";
       toast.error(msg);
-    } finally {
       setBooking(false);
     }
   };
