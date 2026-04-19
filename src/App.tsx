@@ -18,6 +18,7 @@ import Booking from "@/pages/passenger/Booking";
 import MyTickets from "@/pages/passenger/MyTickets";
 import TrackBus from "@/pages/passenger/TrackBus";
 import Feedback from "@/pages/passenger/Feedback";
+import PaymentResult from "@/pages/passenger/PaymentResult";
 
 import DriverDashboard from "@/pages/driver/DriverDashboard";
 
@@ -48,6 +49,7 @@ const App = () => (
               <Route path="/my-tickets" element={<ProtectedRoute roles={["passenger"]}><MyTickets /></ProtectedRoute>} />
               <Route path="/tracking/:tripId" element={<ProtectedRoute roles={["passenger"]}><TrackBus /></ProtectedRoute>} />
               <Route path="/feedback" element={<ProtectedRoute roles={["passenger"]}><Feedback /></ProtectedRoute>} />
+              <Route path="/payment-result" element={<ProtectedRoute roles={["passenger"]}><PaymentResult /></ProtectedRoute>} />
 
               {/* Driver */}
               <Route path="/driver/dashboard" element={<ProtectedRoute roles={["driver"]}><DriverDashboard /></ProtectedRoute>} />

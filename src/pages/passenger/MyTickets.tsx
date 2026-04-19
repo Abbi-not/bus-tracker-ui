@@ -1,11 +1,14 @@
 import { useState, useEffect } from "react";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import { Ticket } from "lucide-react";
 import { ticketService, Ticket as TicketType } from "@/services/ticketService";
+import { toast } from "sonner";
 
 const MyTickets = () => {
   const [tickets, setTickets] = useState<TicketType[]>([]);
   const [loading, setLoading] = useState(true);
+  const [payingId, setPayingId] = useState<number | null>(null);
 
   useEffect(() => {
     ticketService.list()
@@ -13,6 +16,23 @@ const MyTickets = () => {
       .catch(() => {})
       .finally(() => setLoading(false));
   }, []);
+
+  const handlePay = async (id: number) => {
+    setPayingId(id);
+    try {
+      const { checkout_url } = await ticketService.pay(id);
+      sessionStorage.setItem("btts_pending_ticket", String(id));
+      window.location.href = checkout_url;
+    } catch (err: any) {
+      toast.error(err.response?.data?.detail || "Could not start payment");
+      setPayingId(null);
+    }
+  };
+
+  const isUnpaid = (s?: string) => {
+    const v = (s || "").toLowerCase();
+    return v === "pending" || v === "unpaid" || v === "reserved";
+  };
 
   return (
     <div className="max-w-4xl mx-auto px-6 py-12 relative">
@@ -42,9 +62,19 @@ const MyTickets = () => {
               </p>
             </div>
             <div className="flex items-center gap-3">
-              <Badge variant={t.status === "confirmed" || !t.status ? "default" : "secondary"} className="capitalize rounded-full px-3 shadow-sm">
+              <Badge variant={t.status === "confirmed" || t.status === "paid" || !t.status ? "default" : "secondary"} className="capitalize rounded-full px-3 shadow-sm">
                 {t.status ?? "confirmed"}
               </Badge>
+              {isUnpaid(t.status) && (
+                <Button
+                  size="sm"
+                  className="rounded-full px-4 shadow-elevated"
+                  onClick={() => handlePay(t.id)}
+                  disabled={payingId === t.id}
+                >
+                  {payingId === t.id ? "Redirecting..." : "Pay now"}
+                </Button>
+              )}
               <span className="text-xs text-muted-foreground font-mono">#{t.id}</span>
             </div>
           </div>

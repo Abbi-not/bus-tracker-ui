@@ -31,4 +31,12 @@ export const ticketService = {
   cancel: async (id: number): Promise<void> => {
     await api.delete(`/passenger/tickets/${id}/`);
   },
+  pay: async (id: number): Promise<{ checkout_url: string }> => {
+    const { data } = await api.post<{ checkout_url: string }>(`/passenger/tickets/${id}/pay/`);
+    return data;
+  },
+  verifyPayment: async (id: number): Promise<{ status: string }> => {
+    const { data } = await api.post<{ status: string }>(`/passenger/tickets/${id}/payment/verify/`);
+    return data;
+  },
 };
