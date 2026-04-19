@@ -31,6 +31,20 @@ export interface MockTrip {
   route_detail: { id: number; origin: string; destination: string };
 }
 
+export interface MockDriver {
+  id: number;
+  username: string;
+  email: string;
+}
+
+export const mockDrivers: MockDriver[] = [
+  { id: 100, username: "Abera Z.", email: "abera@bustrack.et" },
+  { id: 101, username: "Samuel T.", email: "samuel@bustrack.et" },
+  { id: 102, username: "Hanna M.", email: "hanna@bustrack.et" },
+  { id: 103, username: "Yonas K.", email: "yonas@bustrack.et" },
+  { id: 104, username: "Mekdes A.", email: "mekdes@bustrack.et" },
+];
+
 export interface MockTicket {
   id: number;
   trip: number;

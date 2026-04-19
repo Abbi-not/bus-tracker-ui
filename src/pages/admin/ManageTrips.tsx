@@ -1,14 +1,20 @@
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { Plus, X, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 import { tripService, Trip } from "@/services/tripService";
+import { busService, Bus } from "@/services/busService";
+import { routeService, BusRoute } from "@/services/routeService";
+import { mockDrivers } from "@/lib/mockData";
 
 const ManageTrips = () => {
   const [trips, setTrips] = useState<Trip[]>([]);
+  const [buses, setBuses] = useState<Bus[]>([]);
+  const [routes, setRoutes] = useState<BusRoute[]>([]);
   const [showForm, setShowForm] = useState(false);
   const [loading, setLoading] = useState(true);
   const [busId, setBusId] = useState("");
@@ -23,7 +29,11 @@ const ManageTrips = () => {
       .finally(() => setLoading(false));
   };
 
-  useEffect(() => { fetchTrips(); }, []);
+  useEffect(() => {
+    fetchTrips();
+    busService.adminList().then(setBuses).catch(() => {});
+    routeService.adminList().then(setRoutes).catch(() => {});
+  }, []);
 
   const handleCreate = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -80,10 +90,43 @@ const ManageTrips = () => {
         <div className="glass-card rounded-2xl p-6 mb-8 animate-scale-in">
           <h2 className="text-lg font-serif font-semibold text-foreground mb-4">New Trip</h2>
           <form className="grid grid-cols-1 sm:grid-cols-2 gap-4" onSubmit={handleCreate}>
-            <Input placeholder="Bus ID" type="number" className="rounded-xl h-12 bg-background/50 border-border/40" value={busId} onChange={e => setBusId(e.target.value)} required />
-            <Input placeholder="Route ID" type="number" className="rounded-xl h-12 bg-background/50 border-border/40" value={routeId} onChange={e => setRouteId(e.target.value)} required />
-            <Input placeholder="Driver ID" type="number" className="rounded-xl h-12 bg-background/50 border-border/40" value={driverId} onChange={e => setDriverId(e.target.value)} required />
-            <Input type="datetime-local" className="rounded-xl h-12 bg-background/50 border-border/40" value={departureTime} onChange={e => setDepartureTime(e.target.value)} required />
+            <div>
+              <label className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wider mb-2 block">Bus</label>
+              <Select value={busId} onValueChange={setBusId} required>
+                <SelectTrigger className="rounded-xl h-12 bg-background/50 border-border/40"><SelectValue placeholder="Select bus" /></SelectTrigger>
+                <SelectContent>
+                  {buses.map((b) => (
+                    <SelectItem key={b.id} value={String(b.id)}>{b.plate_number} · {b.capacity} seats</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <div>
+              <label className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wider mb-2 block">Route</label>
+              <Select value={routeId} onValueChange={setRouteId} required>
+                <SelectTrigger className="rounded-xl h-12 bg-background/50 border-border/40"><SelectValue placeholder="Select route" /></SelectTrigger>
+                <SelectContent>
+                  {routes.map((r) => (
+                    <SelectItem key={r.id} value={String(r.id)}>{r.origin} → {r.destination}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <div>
+              <label className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wider mb-2 block">Driver</label>
+              <Select value={driverId} onValueChange={setDriverId} required>
+                <SelectTrigger className="rounded-xl h-12 bg-background/50 border-border/40"><SelectValue placeholder="Select driver" /></SelectTrigger>
+                <SelectContent>
+                  {mockDrivers.map((d) => (
+                    <SelectItem key={d.id} value={String(d.id)}>{d.username}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <div>
+              <label className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wider mb-2 block">Departure</label>
+              <Input type="datetime-local" className="rounded-xl h-12 bg-background/50 border-border/40" value={departureTime} onChange={e => setDepartureTime(e.target.value)} required />
+            </div>
             <div className="sm:col-span-2">
               <Button type="submit" className="rounded-full px-8 shadow-elevated hover-lift">Save</Button>
             </div>
